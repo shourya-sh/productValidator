@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Amazon Product Extractor",
+  "version": "1.0",
+  "description": "Extract Amazon product data using a Python backend.",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Amazon Extractor"
+  },
+  "host_permissions": [
+    "*://www.amazon.*/*"
+  ]
+}
