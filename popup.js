@@ -37,6 +37,10 @@ document.getElementById('extract').addEventListener('click', async () => {
 
       const data = await res.json();
       console.log("Response from backend:", data);
+
+      document.getElementById("result").innerText =
+        "Image Embedding:\n" + JSON.stringify(data.image_embedding, null, 2) +
+        "\n\nText Embedding:\n" + JSON.stringify(data.text_embedding, null, 2);
     } catch (backendError) {
       console.log("Backend not available, data stored locally only");
     }
