@@ -1,19 +1,50 @@
 document.getElementById('extract').addEventListener('click', async () => {
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  
-  // Inject content script to scrape the page
-  const results = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    function: scrapeProductData
-  });
-  
-  const scrapedData = results[0].result;
-  
-  // Display results
-  document.getElementById('result').textContent = JSON.stringify(scrapedData, null, 2);
-  
-  // Store the scraped data
-  await storeScrapedData(scrapedData);
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    // Inject content script to scrape the page
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      function: scrapeProductData
+    });
+    
+    const scrapedData = results[0].result;
+    
+    // Display results in a formatted way
+    document.getElementById("result").innerHTML = `
+      <strong>Title:</strong> ${scrapedData.title}<br>
+      <strong>Image:</strong><br>
+      <img src="${scrapedData.imageUrl}" style="max-width: 100%; height: auto;"><br>
+      <strong>Description:</strong> ${scrapedData.description}<br>
+      <strong>Reviews:</strong> ${scrapedData.reviews.length} found
+    `;
+    
+    // Store the scraped data locally
+    await storeScrapedData(scrapedData);
+    
+    // Send to backend if available
+    try {
+      const res = await fetch("http://localhost:5000/receive-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(scrapedData),
+        mode: "cors"
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log("Response from backend:", data);
+    } catch (backendError) {
+      console.log("Backend not available, data stored locally only");
+    }
+
+  } catch (error) {
+    console.error("Error:", error);
+    document.getElementById("result").innerText = "Error: " + error.message;
+  }
 });
 
 // Function that runs in the page context to scrape data
